@@ -1,5 +1,4 @@
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import * as path from 'path';
 
 async function startServer() {
@@ -104,7 +103,8 @@ async function startServer() {
 
   // Vite Integration (for development and production static serving)
   if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
+    const viteModule = await import('vite');
+    const vite = await viteModule.createServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });

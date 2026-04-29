@@ -27,8 +27,9 @@ const BOOT_SEQUENCE = [
 
 export default function LogicForge() {
   const [lines, setLines] = useState<string[]>([]);
-  const [inputPlaceholder, setInputPlaceholder] = useState("");
+  const [inputValue, setInputValue] = useState("");
   const [isBooting, setIsBooting] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     let currentLine = 0;
@@ -45,6 +46,46 @@ export default function LogicForge() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleCommand = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim() !== '') {
+      const command = inputValue.trim();
+      setInputValue('');
+      setLines(prev => [...prev, `admin@aether-domain:~$ ${command}`]);
+
+      if (command.toLowerCase().includes('sync') || command.toLowerCase().includes('squarespace')) {
+        setSyncing(true);
+        setLines(prev => [...prev, "Initiating Data Sync protocol via Squarespace API...", "Bridging connection..."]);
+        try {
+          const res = await fetch('/api/squarespace/sync', { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            setLines(prev => [
+              ...prev,
+              "Result: " + data.message,
+              "Status: Data stream active.",
+              `Items recovered: ${data.itemCount || 0}`
+            ]);
+          } else {
+            setLines(prev => [
+              ...prev,
+              "Warning: Sync Failed.",
+              data.message || "Unknown routing error"
+            ]);
+          }
+        } catch (err: any) {
+          setLines(prev => [
+            ...prev,
+            "Warning: Connection timeout or Network Fault.",
+            err.message || 'Unknown'
+          ]);
+        }
+        setSyncing(false);
+      } else {
+        setLines(prev => [...prev, `Command '${command}' recognized but not implemented in current Lattice phase. Try 'sync' or 'squarespace sync'.`]);
+      }
+    }
+  };
 
   return (
     <section id="core" className="py-24 px-6 relative z-10">
@@ -100,11 +141,15 @@ export default function LogicForge() {
                     type="text" 
                     className="flex-1 bg-transparent border-none outline-none text-white/90 font-mono placeholder:text-white/20"
                     placeholder="Enter Protocol Directive or Paste Data Sync..."
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleCommand}
+                    disabled={syncing}
                     autoFocus
                   />
                 </div>
                 <div className="text-xs text-white/30 uppercase tracking-widest mt-2">
-                  Awaiting Input...
+                  {syncing ? "System Processing..." : "Awaiting Input..."}
                 </div>
               </div>
             )}

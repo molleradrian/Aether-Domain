@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Modules from './components/Modules';
 import Background from './components/Background';
+import LogicForge from './components/LogicForge';
 import { Twitter, Github, Linkedin, ArrowRight } from 'lucide-react';
 
 export default function App() {
@@ -18,7 +19,7 @@ export default function App() {
       
       <main>
         <Hero />
-        
+        <LogicForge />
         <Modules />
 
         {/* CTA Section */}
